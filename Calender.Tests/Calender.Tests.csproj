@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Calender.Persistent\Calender.Persistent.csproj" />
+    <ProjectReference Include="..\Calender.Services\Calender.Business.csproj" />
   </ItemGroup>
 
   <ItemGroup>

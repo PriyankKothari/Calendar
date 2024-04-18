@@ -83,7 +83,7 @@ namespace Calender.Console
             var date = DateTimeHelper.ParseDateTime(parameters[0]);
             var time = DateTimeHelper.ParseTime(parameters[1]);
             
-            if (date == null || time == null)
+            if (date is null || time is null)
             {
                 System.Console.WriteLine("Invalid date or time format.");
                 return;
@@ -98,7 +98,7 @@ namespace Calender.Console
                 EndTime = endTime
             }, CancellationToken.None).Result;
 
-            if (appointmentModel != null)
+            if (appointmentModel is not null)
                 System.Console.WriteLine($"Appointment added From: {startTime:dd/MM HH:mm} To: {endTime:dd/MM HH:mm}");
             else
                 System.Console.WriteLine($"Appointment cannot be added From: {startTime:dd/MM HH:mm} To: {endTime:dd/MM HH:mm}");
@@ -109,7 +109,7 @@ namespace Calender.Console
             var date = DateTimeHelper.ParseDateTime(parameters[0]);
             var time = DateTimeHelper.ParseTime(parameters[1]);
             
-            if (date == null || time == null)
+            if (date is null || time is null)
             {
                 System.Console.WriteLine("Invalid date or time format.");
                 return;
@@ -129,7 +129,7 @@ namespace Calender.Console
         {
             var time = DateTimeHelper.ParseTime(parameters[0]);
             
-            if (time == null)
+            if (time is null)
             {
                 System.Console.WriteLine("Invalid time format.");
                 return;

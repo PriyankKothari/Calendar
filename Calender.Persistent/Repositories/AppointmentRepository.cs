@@ -56,7 +56,6 @@ namespace Calender.Persistent.Repositories
             {
                 return await
                     this._databaseContext.Set<Appointment>()
-
                     .SingleOrDefaultAsync(app => app.StartTime.Date == startTime.Date && app.StartTime.Hour == startTime.Hour && app.StartTime.Minute == startTime.Minute, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -103,7 +102,7 @@ namespace Calender.Persistent.Repositories
                     .Local
                     .FirstOrDefault(app => app.StartTime.Hour == appointment.StartTime.Hour && app.StartTime.Minute == appointment.StartTime.Minute);
 
-                if (localAppointment != null)
+                if (localAppointment is not null)
                     this._databaseContext.Entry((object)localAppointment).State = EntityState.Detached;
 
                 this._databaseContext.Update(appointment);
@@ -136,7 +135,7 @@ namespace Calender.Persistent.Repositories
                     .Local
                     .FirstOrDefault(app => app.StartTime.Hour == appointment.StartTime.Hour && app.StartTime.Minute == appointment.StartTime.Minute);
 
-                if (localAppointment != null)
+                if (localAppointment is not null)
                     this._databaseContext.Entry((object)localAppointment).State = EntityState.Detached;
 
                 this._databaseContext.Remove(appointment);

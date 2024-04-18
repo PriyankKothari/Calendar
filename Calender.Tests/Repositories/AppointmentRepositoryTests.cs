@@ -20,15 +20,15 @@ namespace Calender.Tests.Repositories
 
             // Assert
             await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await _appointmentRepository.ListAsync(default, It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
+                await this._appointmentRepository.ListAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task ListAsync_ReturnsAllAppointmentsForGivenDate_WhenDateIsGiven()
         {
             // Arrange
-            DateTime startDateTime = new DateTime(2024, 04, 06, 10, 00, 00);
-            DateTime endDateTime = new DateTime(2024, 04, 09, 10, 30, 00);
+            DateTime startDateTime = new(2024, 04, 06, 10, 00, 00);
+            DateTime endDateTime = new(2024, 04, 09, 10, 30, 00);
 
             this._appointmentRepository = new AppointmentRepository(
                 new DatabaseContextBuilder().WithAppointment(
@@ -58,15 +58,15 @@ namespace Calender.Tests.Repositories
 
             // Assert
             await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await _appointmentRepository.GetAsync(default, It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
+                await this._appointmentRepository.GetAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task GetAsync_ReturnsNullForGivenDateAndTime_WhenAppointmentDoesNotExist()
         {
             // Arrange
-            DateTime startDateTime = new DateTime(2024, 04, 12, 12, 00, 00);
-            DateTime endDateTime = new DateTime(2024, 04, 12, 12, 30, 00);
+            DateTime startDateTime = new(2024, 04, 12, 12, 00, 00);
+            DateTime endDateTime = new(2024, 04, 12, 12, 30, 00);
 
             this._appointmentRepository = new AppointmentRepository(
                 new DatabaseContextBuilder().WithAppointment(
@@ -87,8 +87,8 @@ namespace Calender.Tests.Repositories
         public async Task GetAsync_ReturnsOneAppointmentForGivenDateAndTime_WhenAppointmentExists()
         {
             // Arrange
-            DateTime startDateTime = new DateTime(2024, 04, 15, 09, 00, 00);
-            DateTime endDateTime = new DateTime(2024, 04, 15, 09, 30, 00);
+            DateTime startDateTime = new(2024, 04, 15, 09, 00, 00);
+            DateTime endDateTime = new(2024, 04, 15, 09, 30, 00);
 
             this._appointmentRepository = new AppointmentRepository(
                 new DatabaseContextBuilder().WithAppointment(
@@ -117,7 +117,7 @@ namespace Calender.Tests.Repositories
 
             // Assert
             await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await _appointmentRepository.CreateAsync(null, It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
+                await this._appointmentRepository.CreateAsync(It.IsAny<Appointment>(), It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         [TestMethod]
@@ -165,14 +165,14 @@ namespace Calender.Tests.Repositories
 
             // Assert
             await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await _appointmentRepository.UpdateAsync(null, It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
+                await this._appointmentRepository.UpdateAsync(It.IsAny<Appointment>(), It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task UpdateAsync_UpdatesAppointment_WhenAppointIsNotNull()
         {
             // Arrange
-            DateTime startTime = new DateTime(2024, 02, 28, 15, 00, 00);
+            DateTime startTime = new(2024, 02, 28, 15, 00, 00);
             DateTime endTime = startTime.AddMinutes(30);
 
             DateTime startTimeToUpdate = startTime.AddHours(1);
@@ -186,7 +186,7 @@ namespace Calender.Tests.Repositories
                     false)
                 .Build());
 
-            var appointmentToUpdate = await this._appointmentRepository.GetAsync(startTime, It.IsAny<CancellationToken>());
+            var appointmentToUpdate = await this._appointmentRepository.GetAsync(startTime, It.IsAny<CancellationToken>()).ConfigureAwait(false);
 
             appointmentToUpdate.StartTime = startTimeToUpdate;
             appointmentToUpdate.EndTime = endTimeToUpdate;
@@ -212,14 +212,14 @@ namespace Calender.Tests.Repositories
 
             // Assert
             await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
-                await _appointmentRepository.DeleteAsync(null, It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
+                await this._appointmentRepository.DeleteAsync(It.IsAny<Appointment>(), It.IsAny<CancellationToken>()).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         [TestMethod]
         public async Task DeleteAsync_DeletesAppointment_WhenAppointIsNotNull()
         {
             // Arrange
-            DateTime startTime = new DateTime(2024, 01, 26, 11, 30, 00);
+            DateTime startTime = new(2024, 01, 26, 11, 30, 00);
             DateTime endTime = startTime.AddMinutes(30);
 
             this._appointmentRepository = new AppointmentRepository(

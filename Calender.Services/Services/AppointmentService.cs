@@ -47,7 +47,7 @@ namespace Calender.Business.Services
             if (date == default)
                 throw new ArgumentNullException(nameof(date));
 
-            List<AppointmentModel> availableAppointments = new List<AppointmentModel>();
+            List<AppointmentModel> availableAppointments = new();
 
             try
             {
@@ -86,7 +86,8 @@ namespace Calender.Business.Services
             {
                 // check if appointment for the given date and time already exists. Throw exception if it does.
                 Appointment? existingAppointment = await this._appointmentRepository.GetAsync(appointment.StartTime, cancellationToken).ConfigureAwait(false);
-                if (existingAppointment != null)
+                
+                if (existingAppointment is not null)
                     throw new ArgumentException($"Appointment on the given date & time {appointment.StartTime} already exists!");
 
                 DateTime startTime = appointment.StartTime;
@@ -133,19 +134,13 @@ namespace Calender.Business.Services
             {
                 // check if appointment for the given date and time already exists. Throw exception if it does.
                 Appointment? existingAppointment = await this._appointmentRepository.GetAsync(startTime, cancellationToken).ConfigureAwait(false);
-                if (existingAppointment == null)
+                
+                if (existingAppointment is null)
                     throw new ArgumentException($"Appointment for the given date & time {startTime} doesn't exist!");
 
-                // Update existing appointment for the given date and time.
-                // TODO: Use automapper                
-                Appointment? entity = await this._appointmentRepository.UpdateAsync(
-                    new Appointment
-                    {
-                        Id = existingAppointment.Id,
-                        StartTime = existingAppointment.StartTime,
-                        EndTime = existingAppointment.EndTime,
-                        IsAttended = true
-                    }, cancellationToken);
+                // Update existing appointment's IsAttended for the given date and time.
+                existingAppointment.IsAttended = true;
+                Appointment? entity = await this._appointmentRepository.UpdateAsync(existingAppointment, cancellationToken);
 
                 // TODO: Use automapper
                 appointmentModel = new AppointmentModel
@@ -176,18 +171,12 @@ namespace Calender.Business.Services
             {
                 // check if appointment for the given date and time already exists. Throw exception if it does.
                 Appointment? existingAppointment = await this._appointmentRepository.GetAsync(startTime, cancellationToken).ConfigureAwait(false);
-                if (existingAppointment == null)
+                
+                if (existingAppointment is null)
                     throw new ArgumentException($"Appointment for the given date & time {startTime} doesn't exist!");
 
                 // Delete existing appointment for the given date and time.
-                // TODO: Use automapper
-                isDeleted = await this._appointmentRepository.DeleteAsync(
-                    new Appointment
-                    {
-                        Id = existingAppointment.Id,
-                        StartTime = existingAppointment.StartTime,
-                        EndTime = existingAppointment.EndTime
-                    }, cancellationToken);
+                isDeleted = await this._appointmentRepository.DeleteAsync(existingAppointment, cancellationToken);
             }
             catch
             {
