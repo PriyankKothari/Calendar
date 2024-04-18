@@ -44,7 +44,8 @@ namespace Calender.Business.Services
         /// </summary>
         public async Task<List<AppointmentModel>> FindAvailableTimeslots(DateTime date, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(date, nameof(date));
+            if (date == default)
+                throw new ArgumentNullException(nameof(date));
 
             List<AppointmentModel> availableAppointments = new List<AppointmentModel>();
 
@@ -124,7 +125,8 @@ namespace Calender.Business.Services
         /// </summary>
         public async Task<AppointmentModel> KeepAppointment(DateTime startTime, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(startTime, nameof(startTime));
+            if (startTime == default)
+                throw new ArgumentNullException(nameof(startTime));
 
             AppointmentModel? appointmentModel;
             try
@@ -166,7 +168,8 @@ namespace Calender.Business.Services
         /// </summary>
         public async Task<bool> DeleteAppointment(DateTime startTime, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(startTime, nameof(startTime));
+            if (startTime == default)
+                throw new ArgumentNullException(nameof(startTime));
 
             bool isDeleted;
             try

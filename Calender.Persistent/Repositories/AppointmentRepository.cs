@@ -25,7 +25,8 @@ namespace Calender.Persistent.Repositories
         /// </summary>
         public async Task<List<Appointment>> ListAsync(DateTime date, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(date, nameof(date));
+            if (date == default)
+                throw new ArgumentNullException(nameof(date));
 
             try
             {
@@ -48,13 +49,14 @@ namespace Calender.Persistent.Repositories
         /// </summary>
         public async Task<Appointment?> GetAsync(DateTime startTime, CancellationToken cancellationToken)
         {
-            ArgumentNullException.ThrowIfNull(startTime, nameof(startTime));
+            if (startTime == default)
+                throw new ArgumentNullException(nameof(startTime));
 
             try
             {
                 return await
                     this._databaseContext.Set<Appointment>()
-                    .AsNoTracking()
+
                     .SingleOrDefaultAsync(app => app.StartTime.Date == startTime.Date && app.StartTime.Hour == startTime.Hour && app.StartTime.Minute == startTime.Minute, cancellationToken)
                     .ConfigureAwait(false);
             }
@@ -129,6 +131,14 @@ namespace Calender.Persistent.Repositories
 
             try
             {
+                var localAppointment =
+                    this._databaseContext.Set<Appointment>()
+                    .Local
+                    .FirstOrDefault(app => app.StartTime.Hour == appointment.StartTime.Hour && app.StartTime.Minute == appointment.StartTime.Minute);
+
+                if (localAppointment != null)
+                    this._databaseContext.Entry((object)localAppointment).State = EntityState.Detached;
+
                 this._databaseContext.Remove(appointment);
                 await this._databaseContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
                 return true;
