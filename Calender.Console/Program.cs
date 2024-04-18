@@ -15,8 +15,16 @@ namespace Calender.Console
             var serviceProvider = new ServiceCollection()
                 .AddDbContext<DatabaseContext>(options => { options.UseSqlServer(connectionString); })
                 .AddTransient<DatabaseContext>()
-                .AddTransient<IAppointmentService, AppointmentService>()
-                .AddTransient<IAppointmentRepository, AppointmentRepository>()                
+                .AddTransient<IAppointmentRepository, AppointmentRepository>()
+                .AddTransient<IAppointmentService>(provider =>
+                {
+                    return new AppointmentService(
+                        provider.GetRequiredService<IAppointmentRepository>(),
+                        new TimeSpan(09, 00, 00),
+                        new TimeSpan(17, 00, 00),
+                        new TimeSpan(16, 00, 00),
+                        new TimeSpan(17, 00, 00));
+                })
                 .BuildServiceProvider();
 
             if (args.Length < 2)
@@ -28,8 +36,8 @@ namespace Calender.Console
             var command = args[0].ToUpper();
             var parameters = args.Skip(1).ToArray();
 
-            CalenderCommandExecutor calenderCommandExecutor = new(serviceProvider?.GetService<IAppointmentService>());
-            calenderCommandExecutor.ExecuteCommand(command, parameters);
+            CommandExecutor commandExecutor = new(serviceProvider?.GetService<IAppointmentService>());
+            commandExecutor.ExecuteCommand(command, parameters);
         }
     }
 }

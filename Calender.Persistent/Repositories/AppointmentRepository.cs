@@ -81,12 +81,12 @@ namespace Calender.Persistent.Repositories
             catch (DbUpdateConcurrencyException exception)
             {
                 // log exception and continue
-                throw new DbUpdateConcurrencyException(exception.Message);
+                throw;
             }
             catch (Exception exception)
             {
                 // log exception and continue
-                throw new Exception(exception.InnerException?.Message);
+                throw;
             }
         }
 
@@ -111,12 +111,12 @@ namespace Calender.Persistent.Repositories
             catch (DbUpdateConcurrencyException exception)
             {
                 // log exception and continue
-                throw new DbUpdateConcurrencyException(exception.Message);
+                throw;
             }
             catch (Exception exception)
             {
                 // log exception and continue
-                throw new Exception(exception.InnerException?.Message);
+                throw;
             }
         }
 

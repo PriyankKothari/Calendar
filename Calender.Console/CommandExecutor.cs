@@ -3,11 +3,11 @@ using Calender.Business.Services;
 
 namespace Calender.Console
 {
-    internal sealed class CalenderCommandExecutor
+    internal sealed class CommandExecutor
     {
         private readonly IAppointmentService _appointmentService;
 
-        public CalenderCommandExecutor(IAppointmentService appointmentService)
+        public CommandExecutor(IAppointmentService appointmentService)
         {
             _appointmentService = appointmentService ?? throw new ArgumentNullException(nameof(appointmentService));
         }

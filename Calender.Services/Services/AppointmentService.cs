@@ -10,15 +10,33 @@ namespace Calender.Business.Services
     public sealed class AppointmentService : IAppointmentService
     {
         private readonly IAppointmentRepository _appointmentRepository;
+        
+        private readonly TimeSpan _workHoursStartTimeSpan;
+        private readonly TimeSpan _workHoursEndTimeSpan;
+        private readonly TimeSpan _reservedHoursStartTimeSpan;
+        private readonly TimeSpan _reservedHoursEndTimeSpan;
 
         /// <summary>
         /// Creates a new instance of the <see cref="IAppointmentService" />.
         /// </summary>
         /// <param name="appointmentRepository"><see cref="IAppointmentRepository" />.</param>
-        /// <exception cref="ArgumentNullException"></exception>
-        public AppointmentService(IAppointmentRepository appointmentRepository)
+        /// <param name="workHoursStartTimeSpan"><see cref="TimeSpan" /> indicating the start of working hours.</param>
+        /// <param name="workHoursEndTimeSpan"><see cref="TimeSpan "/> indicating the end of working hours.</param>
+        /// <param name="reservedHoursStartTimeSpan"><see cref="TimeSpan" /> indicating the start of reserved hours.</param>
+        /// <param name="reservedHoursEndTimeSpan"><see cref="TimeSpan" /> indicating the end of reserved hours.</param>
+        public AppointmentService(
+            IAppointmentRepository appointmentRepository,
+            TimeSpan workHoursStartTimeSpan,
+            TimeSpan workHoursEndTimeSpan,
+            TimeSpan reservedHoursStartTimeSpan,
+            TimeSpan reservedHoursEndTimeSpan)
         {
             this._appointmentRepository = appointmentRepository ?? throw new ArgumentNullException(nameof(appointmentRepository));
+
+            this._workHoursStartTimeSpan = workHoursStartTimeSpan;
+            this._workHoursEndTimeSpan = workHoursEndTimeSpan;
+            this._reservedHoursStartTimeSpan = reservedHoursStartTimeSpan;
+            this._reservedHoursEndTimeSpan = reservedHoursEndTimeSpan;
         }
 
         /// <summary>
@@ -32,8 +50,8 @@ namespace Calender.Business.Services
 
             try
             {
-                DateTime startTime = new DateTime(date.Year, date.Month, date.Day, 09, 00, 00);
-                DateTime endTime = new DateTime(date.Year, date.Month, date.Day, 17, 00, 00);
+                DateTime startTime = date.Date + _workHoursStartTimeSpan;
+                DateTime endTime = date.Date + _workHoursEndTimeSpan;
 
                 List<Appointment> appointments = await this._appointmentRepository.ListAsync(date, cancellationToken).ConfigureAwait(false);
 
@@ -73,7 +91,7 @@ namespace Calender.Business.Services
                 DateTime startTime = appointment.StartTime;
                 DateTime endTime = appointment.StartTime.AddMinutes(30);
 
-                if (IsAppointmentTimeValid(startTime, endTime))
+                if (IsAppointmentTimeValid(startTime))
                 {
                     // create new appointment if there isn't an appointment already for the given date and time.
                     // TODO: Use automapper
@@ -176,15 +194,19 @@ namespace Calender.Business.Services
             return isDeleted;
         }
 
-        private static bool IsAppointmentTimeValid(DateTime startTime, DateTime endTime)
+        private bool IsAppointmentTimeValid(DateTime startTime)
         {
             // Check if the start time falls between 09:00 and 17:00
-            var startOfDay = startTime.Date.AddHours(9);
-            var endOfDay = startTime.Date.AddHours(17);
-            var isWithinWorkingHours = startTime >= startOfDay && startTime < endOfDay;
+            var isWithinWorkingHours =
+                startTime.Hour >= _workHoursStartTimeSpan.Hours &&
+                startTime.Hour < _workHoursEndTimeSpan.Hours;
 
             // Check if the start time is between 4 PM and 5 PM on each second day of the third week of any month
-            var isReservedTime = startTime.Hour == 16 && startTime.Hour < 17 && IsSecondDayOfThirdWeek(startTime) && isWithinWorkingHours;
+            var isReservedTime =
+                startTime.Hour == _reservedHoursStartTimeSpan.Hours &&
+                startTime.Hour < _reservedHoursEndTimeSpan.Hours &&
+                IsSecondDayOfThirdWeek(startTime) &&
+                isWithinWorkingHours;
             
             return isWithinWorkingHours && !isReservedTime;
         }
