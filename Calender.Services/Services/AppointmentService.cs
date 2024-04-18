@@ -112,6 +112,10 @@ namespace Calender.Business.Services
                         IsAttended = entity.IsAttended
                     };
                 }
+                else
+                {
+                    throw new ArgumentException($"Appointment on the given date & time {appointment.StartTime} cannot be booked! The date is either in the past or appointment time is outside of working hours!");
+                }
             }
             catch
             {
@@ -188,6 +192,9 @@ namespace Calender.Business.Services
 
         private bool IsAppointmentTimeValid(DateTime startTime)
         {
+            // check if the date is before today's date
+            var isInThePast = startTime < DateTime.Now.Date;
+
             // Check if the start time falls between 09:00 and 17:00
             var isWithinWorkingHours =
                 startTime.Hour >= _workHoursStartTimeSpan.Hours &&
@@ -200,7 +207,7 @@ namespace Calender.Business.Services
                 IsSecondDayOfThirdWeek(startTime) &&
                 isWithinWorkingHours;
             
-            return isWithinWorkingHours && !isReservedTime;
+            return !isInThePast && isWithinWorkingHours && !isReservedTime;
         }
 
         private static bool IsSecondDayOfThirdWeek(DateTime date)

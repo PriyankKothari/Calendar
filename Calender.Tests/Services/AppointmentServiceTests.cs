@@ -60,7 +60,7 @@ namespace Calender.Tests.Services
                 _reservedHoursEndTimeSpan);
 
             // Act
-            var result = await appointmentService.FindAvailableTimeslots(new DateTime(2024, 01, 05).Date, It.IsAny<CancellationToken>()).ConfigureAwait(false);
+            var result = await appointmentService.FindAvailableTimeslots(new DateTime(2024, 05, 05).Date, It.IsAny<CancellationToken>()).ConfigureAwait(false);
 
             // Assert
             Assert.IsNotNull(result);
@@ -71,8 +71,8 @@ namespace Calender.Tests.Services
         public async Task FindAvailableTimeslots_ReturnsFewAvailableTimeSlots_WhenSomeAppointmentsAreBooked()
         {
             // Arrange
-            DateTime startDateTime = new(2024, 01, 10, 10, 00, 00);
-            DateTime endDateTime = new(2024, 01, 10, 10, 30, 00);
+            DateTime startDateTime = new(2024, 06, 10, 10, 00, 00);
+            DateTime endDateTime = new(2024, 06, 10, 10, 30, 00);
 
             _appointmentRepository
                 .Setup(repo => repo.ListAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
@@ -97,7 +97,7 @@ namespace Calender.Tests.Services
                 _reservedHoursEndTimeSpan);
 
             // Act
-            var result = await appointmentService.FindAvailableTimeslots(new DateTime(2024, 01, 10).Date, It.IsAny<CancellationToken>()).ConfigureAwait(false);
+            var result = await appointmentService.FindAvailableTimeslots(new DateTime(2024, 06, 10).Date, It.IsAny<CancellationToken>()).ConfigureAwait(false);
 
             // Assert
             Assert.IsNotNull(result);
@@ -120,7 +120,7 @@ namespace Calender.Tests.Services
                 _reservedHoursEndTimeSpan);
 
             // Act
-            var result = await appointmentService.FindAvailableTimeslots(new DateTime(2024, 01, 05).Date, It.IsAny<CancellationToken>()).ConfigureAwait(false);
+            var result = await appointmentService.FindAvailableTimeslots(new DateTime(2024, 06, 15).Date, It.IsAny<CancellationToken>()).ConfigureAwait(false);
 
             // Assert
             Assert.IsNotNull(result);
@@ -153,8 +153,8 @@ namespace Calender.Tests.Services
         public async Task AddAppointment_ThrowsException_WhenAppointmentOnTheRequestedDateAndTimeAlreadyExists()
         {
             // Arrange
-            DateTime startDateTime = new(2024, 01, 10, 10, 00, 00);
-            DateTime endDateTime = new(2024, 01, 10, 10, 30, 00);
+            DateTime startDateTime = new(2024, 05, 10, 10, 00, 00);
+            DateTime endDateTime = new(2024, 05, 10, 10, 30, 00);
 
             var appointmentModel = new AppointmentModel
             {
@@ -191,13 +191,13 @@ namespace Calender.Tests.Services
         }
 
         [TestMethod]
-        public async Task AddAppointment_ReturnsNull_WhenRequestedAppointmentTimeIsNotWithinWorkingHours()
+        public async Task AddAppointment_ThrowsException_WhenRequestedAppointmentTimeIsInThePast()
         {
             // Arrange
             var appointmentModel = new AppointmentModel
             {
-                StartTime = new DateTime(2024, 01, 10, 18, 00, 00),
-                EndTime = new DateTime(2024, 01, 10, 18, 30, 00)
+                StartTime = new DateTime(2024, 03, 15, 18, 00, 00),
+                EndTime = new DateTime(2024, 03, 15, 18, 30, 00)
             };
 
             _appointmentRepository
@@ -212,20 +212,25 @@ namespace Calender.Tests.Services
                 _reservedHoursEndTimeSpan);
 
             // Act
-            var result = await appointmentService.AddAppointment(appointmentModel, It.IsAny<CancellationToken>()).ConfigureAwait(false);
 
             // Assert
-            Assert.IsNull(result);
+            var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(
+                async () =>
+                    await appointmentService.AddAppointment(appointmentModel, It.IsAny<CancellationToken>()).ConfigureAwait(false))
+                .ConfigureAwait(false);
+
+            Assert.IsInstanceOfType(exception, typeof(ArgumentException));
+            Assert.AreEqual(exception.Message, $"Appointment on the given date & time {appointmentModel.StartTime} cannot be booked! The date is either in the past or appointment time is outside of working hours!");
         }
 
         [TestMethod]
-        public async Task AddAppointment_ReturnsNull_WhenRequestedAppointmentTimeIsWithinReservedHours()
+        public async Task AddAppointment_ThrowsException_WhenRequestedAppointmentTimeIsNotWithinWorkingHours()
         {
             // Arrange
             var appointmentModel = new AppointmentModel
             {
-                StartTime = new DateTime(2024, 04, 16, 16, 00, 00),
-                EndTime = new DateTime(2024, 04, 16, 16, 30, 00)
+                StartTime = new DateTime(2024, 05, 15, 18, 00, 00),
+                EndTime = new DateTime(2024, 05, 15, 18, 30, 00)
             };
 
             _appointmentRepository
@@ -240,10 +245,48 @@ namespace Calender.Tests.Services
                 _reservedHoursEndTimeSpan);
 
             // Act
-            var result = await appointmentService.AddAppointment(appointmentModel, It.IsAny<CancellationToken>()).ConfigureAwait(false);
 
             // Assert
-            Assert.IsNull(result);
+            var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(
+                async() =>
+                    await appointmentService.AddAppointment(appointmentModel, It.IsAny<CancellationToken>()).ConfigureAwait(false))
+                .ConfigureAwait(false);
+
+            Assert.IsInstanceOfType(exception, typeof(ArgumentException));
+            Assert.AreEqual(exception.Message, $"Appointment on the given date & time {appointmentModel.StartTime} cannot be booked! The date is either in the past or appointment time is outside of working hours!");
+        }
+
+        [TestMethod]
+        public async Task AddAppointment_ThrowsException_WhenRequestedAppointmentTimeIsWithinReservedHours()
+        {
+            // Arrange
+            var appointmentModel = new AppointmentModel
+            {
+                StartTime = new DateTime(2024, 05, 21, 16, 00, 00),
+                EndTime = new DateTime(2024, 05, 21, 16, 30, 00)
+            };
+
+            _appointmentRepository
+                .Setup(repo => repo.GetAsync(It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(It.IsAny<Appointment>());
+
+            IAppointmentService appointmentService = new AppointmentService(
+                _appointmentRepository.Object,
+                _workHoursStartTimeSpan,
+                _workHoursEndTimeSpan,
+                _reservedHoursStartTimeSpan,
+                _reservedHoursEndTimeSpan);
+
+            // Act
+
+            // Assert
+            var exception = await Assert.ThrowsExceptionAsync<ArgumentException>(
+                async () =>
+                    await appointmentService.AddAppointment(appointmentModel, It.IsAny<CancellationToken>()).ConfigureAwait(false))
+                .ConfigureAwait(false);
+
+            Assert.IsInstanceOfType(exception, typeof(ArgumentException));
+            Assert.AreEqual(exception.Message, $"Appointment on the given date & time {appointmentModel.StartTime} cannot be booked! The date is either in the past or appointment time is outside of working hours!");
         }
 
         [TestMethod]
@@ -252,8 +295,8 @@ namespace Calender.Tests.Services
             // Arrange
             var appointmentModel = new AppointmentModel
             {
-                StartTime = new DateTime(2024, 04, 12, 15, 00, 00),
-                EndTime = new DateTime(2024, 04, 12, 15, 30, 00)
+                StartTime = new DateTime(2024, 04, 22, 15, 00, 00),
+                EndTime = new DateTime(2024, 04, 22, 15, 30, 00)
             };
 
             _appointmentRepository
@@ -331,8 +374,8 @@ namespace Calender.Tests.Services
         public async Task KeepAppointment_ReturnsAppointmentWithMarkedAsAttended_WhenAppointmentOnRequestedDateAndTimeExists()
         {
             // Arrange
-            DateTime startTime = new(2024, 04, 12, 15, 00, 00);
-            DateTime endTime = new(2024, 04, 12, 15, 30, 00);
+            DateTime startTime = new(2024, 05, 12, 15, 00, 00);
+            DateTime endTime = new(2024, 05, 12, 15, 30, 00);
 
             Appointment appointment = new() { StartTime = startTime, EndTime = endTime };
 
@@ -417,8 +460,8 @@ namespace Calender.Tests.Services
         public async Task DeleteAppointment_DeletesAppointmentAndReturnsTrue_WhenAppointmentOnRequestedDateAndTimeExists()
         {
             // Arrange
-            DateTime startTime = new(2024, 03, 28, 13, 00, 00);
-            DateTime endTime = new(2024, 03, 28, 13, 30, 00);
+            DateTime startTime = new(2024, 05, 28, 13, 00, 00);
+            DateTime endTime = new(2024, 05, 28, 13, 30, 00);
 
             Appointment appointment = new() { StartTime = startTime, EndTime = endTime };
 
